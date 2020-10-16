@@ -1,5 +1,4 @@
-const newAql = require('../aql');
-const newTraqlEntry = require('../newTraqlEntry');
+const newAqlPayload = require('../newAqlPayload');
 
 // interface AqlArgInput {
 //   mutationSendTime: string;
@@ -17,28 +16,24 @@ const newTraqlEntry = require('../newTraqlEntry');
 
 function newColor(parent, args, { db, pubsub, traql }, info) {
   db.color.cssColor = args.colorArg;
-  pubsub.publish('COLOR_MUTATED', {
-    //create a helper function that takes payload object and returns payload obj including the updated Aql with current time stamped on it.
+  const payload = { 
     updatedColor: {
       ...db.color,
-      aql: newAql(args),
-    },
-  });
-  // create new traql entry
-  newTraqlEntry(traql, args, pubsub);
+    }
+  };
+  pubsub.publish('COLOR_MUTATED', newAqlPayload(payload, args, traql, pubsub));
   //console.log("CLIENT IP ADDRESS", context.request.connection.remoteAddress)
   return db.color;
 }
 
 function newLuckyNumber(parent, args, { db, pubsub, traql }, info) {
   db.number.luckyNum = args.numberArg;
-  pubsub.publish('NUMBER_MUTATED', {
+  const payload = { 
     updatedNumber: {
       ...db.number,
-      aql: newAql(args),
-    },
-  });
-  newTraqlEntry(traql, args, pubsub);
+    }
+  };
+  pubsub.publish('NUMBER_MUTATED', newAqlPayload(payload, args, traql, pubsub));
   return db.number;
 }
 

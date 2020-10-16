@@ -23,7 +23,7 @@ const app = express();
 app.use(express.json());
 
 const pubsub = new PubSub();
-const traql = new Traql(resolvers);
+const traql = new Traql(resolvers, "Fiesta Color Game");
 
 const server = new ApolloServer({
   typeDefs,

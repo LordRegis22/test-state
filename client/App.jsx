@@ -8,8 +8,6 @@ function App() {
   const [color, setColor] = useState('purple');
   const [luckyNumber, setLuckyNumber] = useState(222);
 
-  const userToken = 'rocioAndMichael';
-
   const colorSubscription = gql`
     subscription {
       updatedColor {
@@ -26,13 +24,25 @@ function App() {
     }
   `;
 
-  //when client receives the new data
-  const { data, loading } = useSubscription(colorSubscription, {
-    onSubscriptionData: (client) => {
-      useAqlSubscription(client, 'updatedColor');
-      setColor(client.subscriptionData.data.updatedColor.cssColor);
+  //useAqlSubscription(query, options, payloadProperty)
+
+  const { data, loading, error } = useAqlSubscription(
+    colorSubscription,
+    {
+      onSubscriptionData: (client) => {
+        setColor(client.subscriptionData.data.updatedColor.cssColor);
+      },
     },
-  });
+    'updatedColor'
+  );
+
+  //when client receives the new data
+  // const { data, loading } = useSubscription(colorSubscription, {
+  //   onSubscriptionData: (client) => {
+  //     useAqlSubscription(client, 'updatedColor');
+  //     setColor(client.subscriptionData.data.updatedColor.cssColor);
+  //   },
+  // });
 
   //when a new color is clicked
   const handleClick = (chosenColor, resolver) => {
@@ -77,72 +87,81 @@ function App() {
           subscriberReceived
           mutationId
           resolver
+          userToken
         }
       }
     }
   `;
 
   //when client receives the new data
-  const { numberData, numberLoading } = useSubscription(numberSubscription, {
-    onSubscriptionData: (client) => {
-      const aqlToSendToDB = client.subscriptionData.data.updatedNumber.aql;
-      aqlToSendToDB.subscriberReceived = Date.now();
-      aqlToSendToDB.roundtripTime = `${
-        aqlToSendToDB.subscriberReceived - aqlToSendToDB.mutationSendTime
-      } ms`;
-      console.log(aqlToSendToDB);
-      const {
-        mutationSendTime,
-        mutationReceived,
-        subscriberReceived,
-        roundtripTime,
-        mutationId,
-        resolver,
-      } = aqlToSendToDB;
-      const options = {
-        method: 'post',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: uuidv4(),
-          mutationSendTime,
-          mutationReceived,
-          subscriberReceived,
-          roundtripTime,
-          mutationId,
-          resolver,
-        }),
-      };
-      fetch(`/analytics`, options)
-        // .then((data) => data.json())
-        // .then((result) => setColor(result.data.newColor.cssColor))
-        .catch((err) => console.log(err));
-
-      setLuckyNumber(client.subscriptionData.data.updatedNumber.luckyNum);
+  const { numData, numLoading, numError } = useAqlSubscription(
+    numberSubscription,
+    {
+      onSubscriptionData: (client) => {
+        setLuckyNumber(client.subscriptionData.data.updatedNumber.luckyNum);
+      },
     },
-  });
+    'updatedNumber'
+  );
+
+  //when client receives the new data
+  // const { numberData, numberLoading } = useSubscription(numberSubscription, {
+  //   onSubscriptionData: (client) => {
+  //     const aqlToSendToDB = client.subscriptionData.data.updatedNumber.aql;
+  //     aqlToSendToDB.subscriberReceived = Date.now();
+  //     aqlToSendToDB.roundtripTime = `${
+  //       aqlToSendToDB.subscriberReceived - aqlToSendToDB.mutationSendTime
+  //     } ms`;
+  //     console.log(aqlToSendToDB);
+  //     const {
+  //       mutationSendTime,
+  //       mutationReceived,
+  //       subscriberReceived,
+  //       roundtripTime,
+  //       mutationId,
+  //       resolver,
+  //       userToken,
+  //     } = aqlToSendToDB;
+  //     const options = {
+  //       method: 'post',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         id: uuidv4(),
+  //         mutationSendTime,
+  //         mutationReceived,
+  //         subscriberReceived,
+  //         roundtripTime,
+  //         mutationId,
+  //         resolver,
+  //         userToken,
+  //       }),
+  //     };
+  //     fetch(`/analytics`, options)
+  //       // .then((data) => data.json())
+  //       // .then((result) => setColor(result.data.newColor.cssColor))
+  //       .catch((err) => console.log(err));
+
+  //     setLuckyNumber(client.subscriptionData.data.updatedNumber.luckyNum);
+  //   },
+  // });
 
   const handleNumberClick = (resolver) => {
     let newLuckyNumber = Math.floor(Math.random() * 1000);
-    const options = {
-      method: 'post',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        query: `mutation{
-          ${resolver}(
-            numberArg: ${newLuckyNumber},
-            aql: {mutationSendTime: "${Date.now()}",
-              mutationReceived: "",
-              subscriberReceived: "",
-              mutationId: "${uuidv4()}",
-              resolver: "${resolver}",
-            }
-            ){luckyNum}}`,
-      }),
-    };
-    fetch(`/graphql`, options)
-      .then((data) => data.json())
-      .then((result) => setLuckyNumber(result.data.newLuckyNumber.luckyNum))
-      .catch((err) => console.log(err));
+    // const options = {
+    //   method: 'post',
+    //   headers: { 'Content-Type': 'application/json' },
+    //   body: JSON.stringify({
+    const query = `mutation{${resolver}(numberArg: ${newLuckyNumber}){luckyNum}}`;
+
+    useAqlMutation(query)
+      .then(() => setLuckyNumber(newLuckyNumber))
+      .catch((err) => console.log('useAqlMutation on LuckyNumber error:', err));
+    //   }),
+    // };
+    // fetch(`/graphql`, options)
+    //   .then((data) => data.json())
+    //   .then((result) => setLuckyNumber(result.data.newLuckyNumber.luckyNum))
+    //   .catch((err) => console.log(err));
   };
 
   const styles = {

@@ -28,8 +28,7 @@ function aqlQueryParser(queryString) {
       mutationReceived: "",
       subscriberReceived: "",
       mutationId: "${uuidv4()}",
-      resolver: "${resolver}",
-      userToken: "testingHooks"}`;
+      resolver: "${resolver}"}`;
     }
     if (queryString[i] === '{' && !resolverFound) {
       inResolver = true;
