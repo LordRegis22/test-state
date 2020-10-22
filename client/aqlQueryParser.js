@@ -1,9 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
-import { gql } from '@apollo/client';
+import * as timesync from 'timesync';
 
 // aqlQueryParser uses classic iterative parsing to extract the resolver from the query, inject a correctly formatted AQL containing the resolver into the body of the query arguments.
 
-// need to update necessary to accept non-string query args
+const ts = timesync.create({
+  server: '/analytics/timesync',
+  interval: 10000,
+});
 
 function aqlQueryParser(queryString) {
   let returnQuery = '';
@@ -24,7 +27,7 @@ function aqlQueryParser(queryString) {
     }
     if (queryString[i] === ')' && inArgs) {
       //inject aql
-      returnQuery += `, aql: {mutationSendTime: "${Date.now()}",
+      returnQuery += `, aql: {mutationSendTime: "${ts.now()}",
       mutationReceived: "",
       subscriberReceived: "",
       mutationId: "${uuidv4()}",

@@ -1,12 +1,21 @@
 const db = require('./models.js');
 
+/* traqlAudit runs through each traql entry to audit if all expected aqls have been
+ received back. If they have, it sends aqls to database, otherwise if there is an
+error, it marks the entry as "on probation", if an entry is on probation and there
+is an error, an error entry is sent to database declared in Models file. */
+
 let open = true;
 function traqlAudit(traql) {
   if (open) {
     open = false;
     if (Object.keys(traql).length > 2) {
       for (let key in traql) {
-        if (key !== 'subResolvers' && key !== 'userToken' && traql[key].expectedNumberOfAqls >= 1) {
+        if (
+          key !== 'subResolvers' &&
+          key !== 'userToken' &&
+          traql[key].expectedNumberOfAqls >= 1
+        ) {
           if (
             traql[key].expectedNumberOfAqls ===
             traql[key].aqlsReceivedBack.length

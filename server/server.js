@@ -6,24 +6,17 @@ const Subscription = require('./resolvers/Subscription');
 const db = require('./db');
 const http = require('http');
 const path = require('path');
-const Traql = require('./traql');
-const traqlAudit = require('./traqlAudit');
-
-// const bodyParser = require('body-parser');
-// const cors = require('cors');
-// const { execute, subscribe } = require('graphql');
-
-// const { SubscriptionServer } = require('subscriptions-transport-ws');
+const { Traql, traqlAudit, analyticsRouter } = require('@aqls/server');
 
 const typeDefs = require('./schema');
 const resolvers = { Mutation, Query, Subscription };
-const analyticsRouter = require('./analyticsRouter');
+
 const PORT = 4000;
 const app = express();
 app.use(express.json());
 
 const pubsub = new PubSub();
-const traql = new Traql(resolvers, "Fiesta Color Game");
+const traql = new Traql(resolvers, '2b1a1362-e7ff-4879-8a2e-2bbd75a03f15');
 
 const server = new ApolloServer({
   typeDefs,

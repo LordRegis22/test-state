@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useSubscription, gql } from '@apollo/client';
 import { v4 as uuidv4 } from 'uuid';
-import useAqlSubscription from './useAqlSubscription';
-import useAqlMutation from './useAqlMutation';
+import { useAqlSubscription, useAqlMutation } from '@aqls/client';
 
 function App() {
   const [color, setColor] = useState('purple');
@@ -47,12 +46,8 @@ function App() {
   //when a new color is clicked
   const handleClick = (chosenColor, resolver) => {
     const colorQuery = `mutation{newColor(colorArg: "${chosenColor}"){id cssColor}}`;
-    console.log(colorQuery);
-    setColor(chosenColor);
 
-    useAqlMutation(colorQuery).then((data) =>
-      console.log('data returned from useMutation:', data)
-    );
+    useAqlMutation(colorQuery).then((data) => setColor(data.chosenColor));
     // const options = {
     //   method: 'post',
     //   headers: { 'Content-Type': 'application/json' },

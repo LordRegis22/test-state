@@ -1,10 +1,17 @@
 import { useSubscription, gql } from '@apollo/client';
 import { v4 as uuidv4 } from 'uuid';
+import * as timesync from 'timesync';
+
+//synchronize time with timesync server
+const ts = timesync.create({
+  server: 'analytics/timesync',
+  interval: 10000,
+});
 
 function sendAqlToAnalytics(client, subscriptionResolver) {
   // create final properties on Aql
   const aqlToSendToDB = client.subscriptionData.data[subscriptionResolver].aql;
-  aqlToSendToDB.subscriberReceived = Date.now();
+  aqlToSendToDB.subscriberReceived = ts.now();
   aqlToSendToDB.roundtripTime = `${
     aqlToSendToDB.subscriberReceived - aqlToSendToDB.mutationSendTime
   }`;
@@ -37,7 +44,9 @@ function sendAqlToAnalytics(client, subscriptionResolver) {
   };
 
   // send Aql to /analytics
-  fetch(`/analytics`, options).catch((err) => console.log(err));
+  fetch(`https://aqls.heroku.com/analytics`, options).catch((err) =>
+    console.log(err)
+  );
 }
 
 function useAqlSubscription(query, options, subscriptionResolver) {
